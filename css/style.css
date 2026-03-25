@@ -176,7 +176,6 @@ body {
   left: 68px;
   right: 8px;
   background: var(--surface);
-  min-width: 0;
   border: 1px solid #333;
   border-left: 3px solid var(--accent);
   border-radius: 6px;

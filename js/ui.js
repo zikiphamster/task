@@ -12,9 +12,11 @@ function render() {
 
   // Date label
   const d = new Date();
-  document.getElementById('todayLabel').textContent = d.toLocaleDateString('en-US', {
+  const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const dateStr = d.toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
   });
+  document.getElementById('todayLabel').textContent = timeStr + '  \u2022  ' + dateStr;
 
   const scheduleTasks = getScheduleTasks(tasks);
   const scheduled = buildSchedule(scheduleTasks);
@@ -24,9 +26,13 @@ function render() {
   const empty = document.getElementById('emptyState');
   const summaryBar = document.getElementById('summaryBar');
 
-  // Determine hour range
+  // Determine hour range - always cover all time windows
   let minHour = DAY_START_HOUR;
   let maxHour = DAY_END_HOUR;
+  for (const w of windows) {
+    minHour = Math.min(minHour, Math.floor(timeToMinutes(w.start) / 60));
+    maxHour = Math.max(maxHour, Math.ceil(timeToMinutes(w.end) / 60));
+  }
   if (scheduled.length) {
     const earliestMin = Math.min(...scheduled.map(s => s._startMin));
     const latestMin = Math.max(...scheduled.map(s => s._startMin + (s.duration || 15)));
@@ -75,78 +81,22 @@ function render() {
     cal.appendChild(div);
   }
 
-  // Assign columns to overlapping tasks
-  const layoutItems = scheduled.map(t => {
-    const dur = t.duration || 15;
-    return {
-      task: t,
-      startMin: t._startMin,
-      endMin: t._startMin + dur,
-      col: 0,
-      totalCols: 1,
-    };
-  });
-
-  // Group overlapping tasks into clusters
-  const clusters = [];
-  let cluster = [];
-  let clusterEnd = -Infinity;
-  for (const item of layoutItems) {
-    if (item.startMin >= clusterEnd) {
-      if (cluster.length) clusters.push(cluster);
-      cluster = [item];
-      clusterEnd = item.endMin;
-    } else {
-      cluster.push(item);
-      clusterEnd = Math.max(clusterEnd, item.endMin);
-    }
-  }
-  if (cluster.length) clusters.push(cluster);
-
-  // Within each cluster, assign columns greedily
-  for (const group of clusters) {
-    const colEnds = []; // tracks when each column is free
-    for (const item of group) {
-      let placed = false;
-      for (let c = 0; c < colEnds.length; c++) {
-        if (item.startMin >= colEnds[c]) {
-          item.col = c;
-          colEnds[c] = item.endMin;
-          placed = true;
-          break;
-        }
-      }
-      if (!placed) {
-        item.col = colEnds.length;
-        colEnds.push(item.endMin);
-      }
-    }
-    const totalCols = colEnds.length;
-    for (const item of group) item.totalCols = totalCols;
-  }
-
-  // Draw task blocks
-  const LEFT_OFFSET = 68;
-  const RIGHT_PAD = 8;
-  for (const item of layoutItems) {
-    const t = item.task;
+  // Draw task blocks sequentially (no overlaps — you can only do one thing at a time)
+  let prevBottom = 0;
+  const GAP = 4;
+  for (const t of scheduled) {
     const isDone = doneSet.has(t.id);
-    const top = ((t._startMin - minHour * 60) / 60) * hourHeight;
+    const timeTop = ((t._startMin - minHour * 60) / 60) * hourHeight;
+    const top = Math.max(timeTop, prevBottom + GAP);
     const dur = t.duration || 15;
     const minHeight = Math.max((dur / 60) * hourHeight, 44);
+    prevBottom = top + minHeight;
     const isOverdue = t.dueDate && t.dueDate < today;
 
     const div = document.createElement('div');
     div.className = 'cal-task' + (isDone ? ' completed' : '');
     div.style.top = top + 'px';
     div.style.minHeight = minHeight + 'px';
-
-    // Column positioning
-    const colWidthPct = (100 / item.totalCols);
-    const leftPct = item.col * colWidthPct;
-    div.style.left = `calc(${LEFT_OFFSET}px + ${leftPct}% - ${LEFT_OFFSET * leftPct / 100}px)`;
-    div.style.width = `calc(${colWidthPct}% - ${LEFT_OFFSET * colWidthPct / 100}px - ${RIGHT_PAD / item.totalCols}px)`;
-    div.style.right = 'auto';
 
     let badges = '';
     if (t.daily) badges += '<span class="badge badge-daily">Daily</span>';
