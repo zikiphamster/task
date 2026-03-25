@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tasks</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <h1>Tasks</h1>
+  <span class="topbar-date" id="todayLabel"></span>
+  <div class="topbar-actions">
+    <button class="btn btn-primary" onclick="openAddTask()">+ Add Task</button>
+    <button class="icon-btn" onclick="openSettings()" title="Settings">&#9881;</button>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="summary-bar" id="summaryBar" style="display:none;">
+  <div class="stat" id="statTasks"></div>
+  <div class="stat" id="statTime"></div>
+</div>
+
+<!-- Day calendar -->
+<div class="calendar-wrap">
+  <div class="calendar" id="calendar"></div>
+  <div class="empty-cal" id="emptyState">No tasks for today. Hit <strong>+ Add Task</strong> to get started.</div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal-overlay" id="addTaskModal">
+  <div class="modal">
+    <h2>Add a Task</h2>
+    <form id="taskForm">
+      <div class="form-group">
+        <label for="taskName">What do you need to do?</label>
+        <input type="text" id="taskName" placeholder="e.g. Finish report" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="dueDate">Due date</label>
+          <input type="date" id="dueDate">
+        </div>
+        <div class="form-group">
+          <label for="duration">Duration (min)</label>
+          <input type="number" id="duration" min="1" max="480" placeholder="30">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="timeWindow">Time window</label>
+        <select id="timeWindow"></select>
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" id="isDaily">
+        <label for="isDaily">Repeat every day</label>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Task</button>
+    </form>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>Settings — Time Windows</h2>
+    <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:1rem;">
+      Define the time windows for your day. Tasks assigned to a window will be scheduled within it.
+    </p>
+    <ul class="window-list" id="windowList"></ul>
+    <div class="add-window-form">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="newWinName" placeholder="e.g. Focus Time">
+      </div>
+      <div class="time-pick-row">
+        <div class="time-pick-group">
+          <label>Start</label>
+          <div class="time-picker">
+            <select id="newWinStartH"></select>
+            <span class="time-sep">:</span>
+            <select id="newWinStartM"></select>
+            <select id="newWinStartAP"><option>AM</option><option>PM</option></select>
+          </div>
+        </div>
+        <div class="time-pick-group">
+          <label>End</label>
+          <div class="time-picker">
+            <select id="newWinEndH"></select>
+            <span class="time-sep">:</span>
+            <select id="newWinEndM"></select>
+            <select id="newWinEndAP"><option>AM</option><option>PM</option></select>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-sm btn-primary" style="width:100%;margin-top:.5rem;" onclick="addWindow()">Add Window</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-sm btn-secondary" onclick="resetWindows()">Reset to Defaults</button>
+      <button class="btn btn-sm btn-primary" style="width:auto;" onclick="closeSettings()">Done</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/storage.js"></script>
+<script src="js/schedule.js"></script>
+<script src="js/ui.js"></script>
+
+</body>
+</html>
