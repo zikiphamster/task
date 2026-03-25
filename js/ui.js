@@ -278,6 +278,10 @@ function updateStickyOffset() {
 }
 window.addEventListener('resize', updateStickyOffset);
 
+// Version — bump this when making changes
+const APP_VERSION = '1.0.0';
+document.getElementById('versionBadge').textContent = 'v' + APP_VERSION;
+
 // Update now-line every minute
 setInterval(render, 60000);
 render();

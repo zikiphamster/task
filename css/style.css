@@ -461,3 +461,15 @@ body {
 }
 
 .delete-btn:hover { color: var(--accent); }
+
+/* Version badge */
+.version-badge {
+  position: fixed;
+  bottom: 8px;
+  right: 12px;
+  font-size: .65rem;
+  color: var(--text-muted);
+  opacity: .4;
+  pointer-events: none;
+  z-index: 100;
+}
